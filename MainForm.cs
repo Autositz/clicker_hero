@@ -46,6 +46,10 @@ namespace clicker_hero
         TimeSpan elapsedtClickTimer = new TimeSpan();
         private ClickLocations clicks;
         Stopwatch swTest = new Stopwatch();
+        private System.Timers.Timer tAutoClickTimer;
+        private System.Timers.Timer tForcedDelayAutoClickTimer;
+        private System.Timers.Timer tForcedDelayWaitAutoClickTimer;
+        private bool bForceWait = true; // do we need to force a wait on next check
         
 #if DEBUG
         int iTimerHours = 0;
@@ -75,6 +79,23 @@ namespace clicker_hero
             tTickTimer.Interval = 1;
             tTickTimer.Enabled = true;
             
+            LOG.Add("MAIN: Set AutoClickTimer");
+            tAutoClickTimer = new System.Timers.Timer();
+            tAutoClickTimer.AutoReset = true;
+            tAutoClickTimer.Elapsed += new ElapsedEventHandler(DoAutoClick);
+            tAutoClickTimer.Interval = 1000 / 40; // 40 clicks per second max
+            
+            LOG.Add("MAIN: Set ForcedDelayAutoClickTimer");
+            tForcedDelayAutoClickTimer = new System.Timers.Timer();
+            tForcedDelayAutoClickTimer.AutoReset = false;
+            tForcedDelayAutoClickTimer.Elapsed += new ElapsedEventHandler(DelayAutoClick);
+            tForcedDelayAutoClickTimer.Interval = 1000 * 5; // run for 30 seconds then wait for user interactions
+            LOG.Add("MAIN: Set ForcedDelayWaitAutoClickTimer");
+            tForcedDelayWaitAutoClickTimer = new System.Timers.Timer();
+            tForcedDelayWaitAutoClickTimer.AutoReset = false;
+            tForcedDelayWaitAutoClickTimer.Elapsed += new ElapsedEventHandler(DelayAutoClick);
+            tForcedDelayWaitAutoClickTimer.Interval = 1000 * 10; // wait 7 seconds to allow user interactions
+            
             StartStopTimer();
 
             
@@ -86,19 +107,50 @@ namespace clicker_hero
             clicks = new ClickLocations();
             DoIt();
         }
-
+        
+        public void DelayAutoClick(object sender, EventArgs e)
+        {
+            if (bForceWait) {
+                LOG.Add("DELAYAUTOCLICK: WAITING");
+                tAutoClickTimer.Stop();
+//                LOG.Add("DELAYAUTOCLICK: 1");
+//                labelAutoClicker.Text = "Waiting..."; // execution stops here but no exception raised...
+//                LOG.Add("DELAYAUTOCLICK: 2");
+                tForcedDelayWaitAutoClickTimer.Start();
+                LOG.Add("DELAYAUTOCLICK: WaitTimer started");
+            } else {
+                LOG.Add("DELAYAUTOCLICK: RUNNING");
+                tForcedDelayAutoClickTimer.Start();
+//                labelAutoClicker.Text = "Running...";
+                tAutoClickTimer.Start();
+                LOG.Add("DELAYAUTOCLICK: AutoClickTimer started");
+            }
+            bForceWait = !bForceWait;
+        }
+        
+        private void GetHandleCoords(string processname, ref IntPtr handle, ref Point po)
+        {
+//            LOG.Add("GETHANDLE: Start");
+            foreach (Process p in Process.GetProcessesByName(processname)) {
+                handle = p.MainWindowHandle;
+                RECT rct = new RECT();
+                GetWindowRect(handle, ref rct);
+                po = new Point(rct.Left, rct.Top);
+                LOG.Add("GETHANDLE: Found at " + po);
+            }
+        }
+        
         private async void DoIt()
         {
             LOG.Add("DOIT: Start");
             swTest.Restart();
             starttClickTimer = DateTime.Now;
             
-            foreach (Process p in Process.GetProcessesByName("clicker heroes")) {
-                IntPtr handle = p.MainWindowHandle;
-                RECT rct = new RECT();
-                GetWindowRect(handle, ref rct);
-                Point po = new Point(rct.Left, rct.Top);
-                
+            IntPtr handle = new IntPtr(-1);
+            Point po = new Point();
+            GetHandleCoords("clicker heroes", ref handle, ref po);
+            
+            if (handle.ToInt32() != -1) {
                 if (checkBoxClickables.Checked) {
                     LOG.Add("DOIT: Doing Clickables");
                     test1.go(po, clicks.clicker1, handle);
@@ -116,20 +168,17 @@ namespace clicker_hero
                     LOG.Add("DOIT: Done Clickables");
                 }
                 
-                if (checkBoxHeroLevel1.Checked)
-                {
+                if (checkBoxHeroLevel1.Checked) {
                     LOG.Add("DOIT: Hero Level 1");
                     test1.go(po, clicks.level1, handle);
                     await Wait(150);
                 }
-                if (checkBoxHeroLevel2.Checked)
-                {
+                if (checkBoxHeroLevel2.Checked) {
                     LOG.Add("DOIT: Hero Level 2");
                     test1.go(po, clicks.level2, handle);
                     await Wait(150);
                 }
-                if (checkBoxHeroLevel3.Checked)
-                {
+                if (checkBoxHeroLevel3.Checked) {
                     LOG.Add("DOIT: Hero Level 3");
                     test1.go(po, clicks.level3, handle);
                     await Wait(150);
@@ -147,6 +196,18 @@ namespace clicker_hero
         async Task Wait(int waittime)
         {
             await Task.Delay(waittime);
+        }
+
+        void DoAutoClick(object sender, EventArgs e)
+        {
+            IntPtr handle = new IntPtr(-1);
+            Point po = new Point();
+            GetHandleCoords("clicker heroes", ref handle, ref po);
+            
+            if (checkBoxAutoClicker.Checked) {
+                LOG.Add("DOAUTOCLICK: Autoclicking");
+//                test1.go(po, clicks.clickerAuto, handle);
+            }
         }
         
         public void CheckNextTime(object sender, EventArgs e)
@@ -172,16 +233,13 @@ namespace clicker_hero
         {
             LOG.Add("SETTIMER: Parsing Textbox to variables");
             int i;
-            if (int.TryParse(textBox1.Text, out i))
-            {
+            if (int.TryParse(textBox1.Text, out i)) {
                 iTimerHours = i;
             }
-            if (int.TryParse(textBox2.Text, out i))
-            {
+            if (int.TryParse(textBox2.Text, out i)) {
                 iTimerMinutes = i;
             }
-            if (int.TryParse(textBox3.Text, out i))
-            {
+            if (int.TryParse(textBox3.Text, out i)) {
                 iTimerSeconds = i;
             }
             SetNewTimer();
@@ -198,6 +256,10 @@ namespace clicker_hero
                 iTime += iTimerSeconds;
             
             LOG.Add("SETNEWTIMER: New timer set to " + iTime + " sec");
+            if (iTime < 10) {
+                LOG.Add("SETNEWTIMER: OVERRIDE to 10 sec");
+                iTime = 10; // override small values to remain responsive
+            }
             tClickTimer.Interval = 1000 * iTime;
             starttClickTimer = DateTime.Now;
 //            labelTimerSet.Text = string.Format("{0}:{1}:{2}", iTimerHours.ToString("D2"), iTimerMinutes.ToString("D2"), iTimerSeconds.ToString("D2")) + Environment.NewLine + tClickTimer.Interval;
@@ -218,16 +280,18 @@ namespace clicker_hero
         
         void StartStopTimer(object sender, EventArgs e, bool data)
         {
-            if (checkBoxTimerActive.Checked)
-            {
+            if (checkBoxTimerActive.Checked) {
                 LOG.Add("STARTSTOPTIMER: STARTING");
                 tClickTimer.Start();
                 starttClickTimer = DateTime.Now;
                 tTickTimer.Enabled = true;
-                
-            } else
-            {
+                tAutoClickTimer.Start();
+                tForcedDelayAutoClickTimer.Start();
+            } else {
                 LOG.Add("STARTSTOPTIMER: STOPPING");
+                tForcedDelayWaitAutoClickTimer.Stop();
+                tForcedDelayAutoClickTimer.Stop();
+                tAutoClickTimer.Stop();
                 tTickTimer.Enabled = false;
                 tClickTimer.Stop();
             }
@@ -255,12 +319,11 @@ namespace clicker_hero
         {
             Point p = new Point(Convert.ToInt32(pStart.X + pLocation.X), Convert.ToInt32(pStart.Y + pLocation.Y));
             
-            if (handle.ToInt32() != -1)
-            {
+            if (handle.ToInt32() != -1) {
                 LOG.Add("GO: Bringing app to front");
                 SetForegroundWindow(handle.ToInt32());
             }
-            LOG.Add("GO: Moving Cursor to: " + p.ToString());
+//            LOG.Add("GO: Moving Cursor to: " + p.ToString());
             Cursor.Position = p;
             mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, new IntPtr());
             mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, new IntPtr());
@@ -287,6 +350,7 @@ namespace clicker_hero
         public Point level2 = new Point(100, 370);
         public Point level3 = new Point(100, 475);
         public Point level4 = new Point(100, 583);
+        public Point clickerAuto = new Point(850, 300);
     }
     
         
