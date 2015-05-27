@@ -1,0 +1,6 @@
+﻿20150526
+* Fixed timer only firing once
+* Added Clickables coords
+
+20150525
+* Added Hero leveling
