@@ -89,12 +89,12 @@ namespace clicker_hero
             tForcedDelayAutoClickTimer = new System.Timers.Timer();
             tForcedDelayAutoClickTimer.AutoReset = false;
             tForcedDelayAutoClickTimer.Elapsed += new ElapsedEventHandler(DelayAutoClick);
-            tForcedDelayAutoClickTimer.Interval = 1000 * 5; // run for 30 seconds then wait for user interactions
+            tForcedDelayAutoClickTimer.Interval = 1000 * 45; // run for 45 seconds then wait for user interactions
             LOG.Add("MAIN: Set ForcedDelayWaitAutoClickTimer");
             tForcedDelayWaitAutoClickTimer = new System.Timers.Timer();
             tForcedDelayWaitAutoClickTimer.AutoReset = false;
             tForcedDelayWaitAutoClickTimer.Elapsed += new ElapsedEventHandler(DelayAutoClick);
-            tForcedDelayWaitAutoClickTimer.Interval = 1000 * 10; // wait 7 seconds to allow user interactions
+            tForcedDelayWaitAutoClickTimer.Interval = 1000 * 6; // wait 6 seconds to allow user interactions
             
             StartStopTimer();
 
@@ -206,7 +206,7 @@ namespace clicker_hero
             
             if (checkBoxAutoClicker.Checked) {
                 LOG.Add("DOAUTOCLICK: Autoclicking");
-//                test1.go(po, clicks.clickerAuto, handle);
+                test1.go(po, clicks.clickerAuto, handle);
             }
         }
         
