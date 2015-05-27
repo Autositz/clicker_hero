@@ -238,6 +238,8 @@ namespace clicker_hero
             // 
             // checkBoxClickables
             // 
+            this.checkBoxClickables.Checked = true;
+            this.checkBoxClickables.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkBoxClickables.Location = new System.Drawing.Point(7, 20);
             this.checkBoxClickables.Name = "checkBoxClickables";
             this.checkBoxClickables.Size = new System.Drawing.Size(99, 24);
@@ -274,7 +276,7 @@ namespace clicker_hero
             this.Controls.Add(this.groupBoxClickables);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.groupBox3);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "MainForm";

@@ -47,9 +47,15 @@ namespace clicker_hero
         private ClickLocations clicks;
         Stopwatch swTest = new Stopwatch();
         
+#if DEBUG
         int iTimerHours = 0;
         int iTimerMinutes = 0;
         int iTimerSeconds = 20;
+#else
+        int iTimerHours = 0;
+        int iTimerMinutes = 8;
+        int iTimerSeconds = 0;
+#endif
         
         public MainForm()
         {
