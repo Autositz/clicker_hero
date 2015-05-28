@@ -59,7 +59,6 @@ namespace clicker_hero
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.labelElapsed = new System.Windows.Forms.Label();
             this.groupBoxHeroLevels = new System.Windows.Forms.GroupBox();
             this.checkBoxHeroLevel4 = new System.Windows.Forms.CheckBox();
@@ -272,7 +271,7 @@ namespace clicker_hero
             // pictureBox1
             // 
             this.pictureBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
+            this.pictureBox1.Image = global::clicker_hero.Resources.hero_list;
             this.pictureBox1.Location = new System.Drawing.Point(119, 181);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(240, 243);
