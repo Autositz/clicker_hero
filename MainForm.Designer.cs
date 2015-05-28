@@ -36,6 +36,7 @@ namespace clicker_hero
         private System.Windows.Forms.GroupBox groupBoxAFKClicker;
         private System.Windows.Forms.CheckBox checkBoxAutoClicker;
         private System.Windows.Forms.Label labelAutoClicker;
+        private System.Windows.Forms.Label labelErrors;
         
         /// <summary>
         /// Disposes resources used by the form.
@@ -81,6 +82,7 @@ namespace clicker_hero
             this.labelTextHeroAlign = new System.Windows.Forms.Label();
             this.groupBoxAFKClicker = new System.Windows.Forms.GroupBox();
             this.checkBoxAutoClicker = new System.Windows.Forms.CheckBox();
+            this.labelErrors = new System.Windows.Forms.Label();
             this.groupBoxHeroLevels.SuspendLayout();
             this.groupBoxTimer.SuspendLayout();
             this.groupBoxClickables.SuspendLayout();
@@ -93,15 +95,16 @@ namespace clicker_hero
             this.labelElapsed.Location = new System.Drawing.Point(98, 20);
             this.labelElapsed.Name = "labelElapsed";
             this.labelElapsed.Size = new System.Drawing.Size(91, 23);
-            this.labelElapsed.TabIndex = 0;
+            this.labelElapsed.TabIndex = 8;
             // 
             // groupBoxHeroLevels
             // 
+            this.groupBoxHeroLevels.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.groupBoxHeroLevels.Controls.Add(this.checkBoxHeroLevel4);
             this.groupBoxHeroLevels.Controls.Add(this.checkBoxHeroLevel3);
             this.groupBoxHeroLevels.Controls.Add(this.checkBoxHeroLevel2);
             this.groupBoxHeroLevels.Controls.Add(this.checkBoxHeroLevel1);
-            this.groupBoxHeroLevels.Location = new System.Drawing.Point(12, 118);
+            this.groupBoxHeroLevels.Location = new System.Drawing.Point(12, 121);
             this.groupBoxHeroLevels.Name = "groupBoxHeroLevels";
             this.groupBoxHeroLevels.Size = new System.Drawing.Size(100, 147);
             this.groupBoxHeroLevels.TabIndex = 1;
@@ -146,6 +149,7 @@ namespace clicker_hero
             // 
             // groupBoxTimer
             // 
+            this.groupBoxTimer.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.groupBoxTimer.Controls.Add(this.labelAutoClicker);
             this.groupBoxTimer.Controls.Add(this.checkBoxTimerActive);
             this.groupBoxTimer.Controls.Add(this.buttonSetTimer);
@@ -156,7 +160,7 @@ namespace clicker_hero
             this.groupBoxTimer.Controls.Add(this.textBox2);
             this.groupBoxTimer.Controls.Add(this.labelTextLastClicks);
             this.groupBoxTimer.Controls.Add(this.labelElapsed);
-            this.groupBoxTimer.Location = new System.Drawing.Point(12, 12);
+            this.groupBoxTimer.Location = new System.Drawing.Point(12, 15);
             this.groupBoxTimer.Name = "groupBoxTimer";
             this.groupBoxTimer.Size = new System.Drawing.Size(335, 100);
             this.groupBoxTimer.TabIndex = 0;
@@ -165,11 +169,12 @@ namespace clicker_hero
             // 
             // labelAutoClicker
             // 
-            this.labelAutoClicker.Location = new System.Drawing.Point(231, 74);
+            this.labelAutoClicker.Location = new System.Drawing.Point(231, 69);
             this.labelAutoClicker.Name = "labelAutoClicker";
-            this.labelAutoClicker.Size = new System.Drawing.Size(98, 23);
-            this.labelAutoClicker.TabIndex = 6;
-            this.labelAutoClicker.Text = "labelAutoClicker";
+            this.labelAutoClicker.Size = new System.Drawing.Size(98, 28);
+            this.labelAutoClicker.TabIndex = 9;
+            this.labelAutoClicker.Text = "labelAutoClicker\r\nhh:mm:ss.fff";
+            this.labelAutoClicker.Visible = false;
             // 
             // checkBoxTimerActive
             // 
@@ -198,7 +203,7 @@ namespace clicker_hero
             this.labelTimerSet.Location = new System.Drawing.Point(7, 74);
             this.labelTimerSet.Name = "labelTimerSet";
             this.labelTimerSet.Size = new System.Drawing.Size(85, 23);
-            this.labelTimerSet.TabIndex = 5;
+            this.labelTimerSet.TabIndex = 7;
             this.labelTimerSet.Text = "labelTimerSet";
             // 
             // textBox3
@@ -223,7 +228,7 @@ namespace clicker_hero
             this.labelTextClickInterval.Location = new System.Drawing.Point(7, 43);
             this.labelTextClickInterval.Name = "labelTextClickInterval";
             this.labelTextClickInterval.Size = new System.Drawing.Size(85, 27);
-            this.labelTextClickInterval.TabIndex = 1;
+            this.labelTextClickInterval.TabIndex = 6;
             this.labelTextClickInterval.Text = "Timer setting\r\nHH:mm:ss";
             // 
             // textBox2
@@ -239,13 +244,14 @@ namespace clicker_hero
             this.labelTextLastClicks.Location = new System.Drawing.Point(7, 20);
             this.labelTextLastClicks.Name = "labelTextLastClicks";
             this.labelTextLastClicks.Size = new System.Drawing.Size(85, 23);
-            this.labelTextLastClicks.TabIndex = 0;
+            this.labelTextLastClicks.TabIndex = 5;
             this.labelTextLastClicks.Text = "Since last clicks";
             // 
             // groupBoxClickables
             // 
+            this.groupBoxClickables.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.groupBoxClickables.Controls.Add(this.checkBoxClickables);
-            this.groupBoxClickables.Location = new System.Drawing.Point(118, 118);
+            this.groupBoxClickables.Location = new System.Drawing.Point(118, 121);
             this.groupBoxClickables.Name = "groupBoxClickables";
             this.groupBoxClickables.Size = new System.Drawing.Size(118, 53);
             this.groupBoxClickables.TabIndex = 2;
@@ -265,8 +271,9 @@ namespace clicker_hero
             // 
             // pictureBox1
             // 
+            this.pictureBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
-            this.pictureBox1.Location = new System.Drawing.Point(119, 178);
+            this.pictureBox1.Location = new System.Drawing.Point(119, 181);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(240, 243);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -275,7 +282,8 @@ namespace clicker_hero
             // 
             // labelTextHeroAlign
             // 
-            this.labelTextHeroAlign.Location = new System.Drawing.Point(13, 272);
+            this.labelTextHeroAlign.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelTextHeroAlign.Location = new System.Drawing.Point(13, 275);
             this.labelTextHeroAlign.Name = "labelTextHeroAlign";
             this.labelTextHeroAlign.Size = new System.Drawing.Size(100, 83);
             this.labelTextHeroAlign.TabIndex = 4;
@@ -284,8 +292,9 @@ namespace clicker_hero
             // 
             // groupBoxAFKClicker
             // 
+            this.groupBoxAFKClicker.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBoxAFKClicker.Controls.Add(this.checkBoxAutoClicker);
-            this.groupBoxAFKClicker.Location = new System.Drawing.Point(243, 119);
+            this.groupBoxAFKClicker.Location = new System.Drawing.Point(243, 122);
             this.groupBoxAFKClicker.Name = "groupBoxAFKClicker";
             this.groupBoxAFKClicker.Size = new System.Drawing.Size(104, 52);
             this.groupBoxAFKClicker.TabIndex = 3;
@@ -300,12 +309,25 @@ namespace clicker_hero
             this.checkBoxAutoClicker.TabIndex = 0;
             this.checkBoxAutoClicker.Text = "AutoClicker";
             this.checkBoxAutoClicker.UseVisualStyleBackColor = true;
+            this.checkBoxAutoClicker.CheckedChanged += new System.EventHandler(this.StartStopAutoTimer);
+            // 
+            // labelErrors
+            // 
+            this.labelErrors.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.labelErrors.ForeColor = System.Drawing.Color.Red;
+            this.labelErrors.Location = new System.Drawing.Point(12, 0);
+            this.labelErrors.Name = "labelErrors";
+            this.labelErrors.Size = new System.Drawing.Size(335, 16);
+            this.labelErrors.TabIndex = 5;
+            this.labelErrors.Text = "No Errors";
+            this.labelErrors.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(359, 421);
+            this.ClientSize = new System.Drawing.Size(359, 424);
+            this.Controls.Add(this.labelErrors);
             this.Controls.Add(this.groupBoxAFKClicker);
             this.Controls.Add(this.labelTextHeroAlign);
             this.Controls.Add(this.pictureBox1);
