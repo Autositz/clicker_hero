@@ -177,8 +177,6 @@ namespace clicker_hero
             // 
             // checkBoxTimerActive
             // 
-            this.checkBoxTimerActive.Checked = true;
-            this.checkBoxTimerActive.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkBoxTimerActive.Location = new System.Drawing.Point(195, 15);
             this.checkBoxTimerActive.Name = "checkBoxTimerActive";
             this.checkBoxTimerActive.Size = new System.Drawing.Size(104, 24);
@@ -339,6 +337,7 @@ namespace clicker_hero
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Clicker Hero";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainFormFormClosing);
             this.groupBoxHeroLevels.ResumeLayout(false);
             this.groupBoxTimer.ResumeLayout(false);
             this.groupBoxTimer.PerformLayout();

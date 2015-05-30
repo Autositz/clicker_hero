@@ -16,6 +16,7 @@ using System.Diagnostics;
 using System.Timers;
 using System.Threading;
 using System.Threading.Tasks;
+using Hotkeys;
 
 namespace clicker_hero
 {
@@ -40,6 +41,7 @@ namespace clicker_hero
         DateTime starttAutoTimer = new DateTime();
         TimeSpan elapsedtAutoTimer = new TimeSpan();
         int iMaxClicksPerSecond = 40; // 40 clicks per second max
+        private GlobalHotkey ghkAutoCLicker;
         
 #if DEBUG
         int iTimerHours = 0;
@@ -62,6 +64,21 @@ namespace clicker_hero
             //
             InitializeComponent();
             this.CreateControl();
+            this.Text += " " + this.ProductVersion;
+            
+            // register global hotkeys
+            ghkAutoCLicker = new GlobalHotkey(Constants.ALT + Constants.SHIFT, Keys.A, this);
+            
+            
+            if (ghkAutoCLicker.Register()) {
+                MessageBox.Show("Enable/Disable AutoClicker with" + Environment.NewLine +
+                                "ALT + SHIFT + A" + Environment.NewLine,
+                                "AutoClicker Information", MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+            } else {
+                MessageBox.Show("Unable to register global hotkey for AutoClicker!" + Environment.NewLine + 
+                                "Autoclicker is clicking for " + iAutoTimerSeconds + " seconds and will then wait " + iAutoTimerDelaySeconds + " seconds before clicking again." + Environment.NewLine,
+                                "AutoClicker Information", MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1);
+            }
             
             LOG.Add("MAIN: Set ClickTimer", 5);
             tClickTimer = new System.Timers.Timer();
@@ -103,6 +120,25 @@ namespace clicker_hero
             DoIt();
         }
         
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == Constants.WM_HOTKEY_MSG_ID)
+            {
+                switch (GlobalHotkey.GetKey(m.LParam)) {
+                    case Keys.A:
+                        FlipAutoClicker();
+                        StartStopAutoTimer();
+                        break;
+                }
+            }
+            base.WndProc(ref m);
+        }
+        
+        public void FlipAutoClicker()
+        {
+            checkBoxAutoClicker.Checked = !checkBoxAutoClicker.Checked;
+        }
+        
         public void DelayAutoClick(object sender, EventArgs e)
         {
             if (bForceWait) {
@@ -128,8 +164,11 @@ namespace clicker_hero
         private async void DoIt()
         {
             LOG.Add("DOIT: Start", 2);
-            swTest.Restart();
+//            swTest.Restart();
             starttClickTimer = DateTime.Now;
+            
+            if (!checkBoxTimerActive.Checked)
+                return;
             
             IntPtr handle = new IntPtr(-1);
             Point po = new Point();
@@ -309,12 +348,14 @@ namespace clicker_hero
         
         void StartStopAutoTimer(object sender, EventArgs e, bool data)
         {
-            if (checkBoxAutoClicker.Checked) {
+            if (checkBoxAutoClicker.Checked && checkBoxTimerActive.Checked) {
                 LOG.Add("STARTSTOPAUTOTIMER: STARTING", 3);
                 StartAutoTimer();
+                Error("AutoClicker started");
             } else {
                 LOG.Add("STARTSTOPAUTOTIMER: STOPPING", 3);
                 StopAutoTimer();
+                Error("AutoClicker stopped");
             }
         }
 
@@ -324,12 +365,14 @@ namespace clicker_hero
             starttAutoTimer = DateTime.Now;
             tForcedDelayAutoClickTimer.Start();
             labelAutoClicker.Visible = true;
+            checkBoxAutoClicker.Checked = true;
             bForceWait = true; // enable to force a wait on next switch no matter the current state
         }
 
         void StopAutoTimer()
         {
             labelAutoClicker.Visible = false;
+            checkBoxAutoClicker.Checked = false;
             tForcedDelayWaitAutoClickTimer.Stop();
             tForcedDelayAutoClickTimer.Stop();
             tAutoClickTimer.Stop();
@@ -413,6 +456,12 @@ namespace clicker_hero
             labelErrors.Text = msg;
             
             return true;
+        }
+        void MainFormFormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (!ghkAutoCLicker.Unregister())
+                MessageBox.Show("Error while unregistering hotkey.",
+                                "AutoClicker Information", MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
         }
     }
     
