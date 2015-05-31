@@ -40,21 +40,21 @@ namespace clicker_hero
         private bool bForceWait = true; // do we need to force a wait on next check
         DateTime starttAutoTimer = new DateTime();
         TimeSpan elapsedtAutoTimer = new TimeSpan();
-        int iMaxClicksPerSecond = 40; // 40 clicks per second max
+        const int iMaxClicksPerSecond = 40; // 40 clicks per second max
         private GlobalHotkey ghkAutoCLicker;
         
 #if DEBUG
         int iTimerHours = 0;
         int iTimerMinutes = 0;
         int iTimerSeconds = 30;
-        int iAutoTimerSeconds = 7;
-        int iAutoTimerDelaySeconds = 5;
+        const int iAutoTimerSeconds = 7;
+        const int iAutoTimerDelaySeconds = 5;
 #else
         int iTimerHours = 0;
         int iTimerMinutes = 8; // do clickables every 8 minutes to not interrupt idle farming too much
         int iTimerSeconds = 0;
-        int iAutoTimerSeconds = 45; // run for 45 seconds then wait for user interactions
-        int iAutoTimerDelaySeconds = 6; // wait 6 seconds to allow user interactions
+        const int iAutoTimerSeconds = 45; // run for 45 seconds then wait for user interactions
+        const int iAutoTimerDelaySeconds = 6; // wait 6 seconds to allow user interactions
 #endif
         
         public MainForm()
@@ -433,7 +433,8 @@ namespace clicker_hero
                 Error("");
                 if (checkBoxBackground.Checked) {
                     LOG.Add("GO: Sending to background app", 4);
-                    ControlClickWindow("Clicker Heroes", "left", pLocation.X, pLocation.Y, false);
+//                    ControlClickWindow("Clicker Heroes", "left", pLocation.X, pLocation.Y, false);
+                    _PostMessage(handle, pLocation);
                 } else {
                     Point p = new Point(Convert.ToInt32(pStart.X + pLocation.X), Convert.ToInt32(pStart.Y + pLocation.Y));
                     LOG.Add("GO: Bringing app to front", 4);
@@ -457,7 +458,7 @@ namespace clicker_hero
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = false)]
         static extern IntPtr SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
         
-        ///summary>
+        /// <summary>
         /// Virtual Messages
         /// </summary>
         public enum WMessages : int
@@ -640,6 +641,19 @@ namespace clicker_hero
                
         }
 #endregion SEND_INPUT
+#region POSTMESSAGE
+        [DllImport("user32.dll")]
+        static extern bool PostMessage(IntPtr hWnd, uint Msg, int wParam, int lParam);
+        
+        const int WM_LBUTTONDOWN = 0x0201;
+        const int WM_LBUTTONUP = 0x0202;
+        
+        public void _PostMessage(IntPtr handle, Point p)
+        {
+            PostMessage(handle, WM_LBUTTONDOWN, 1, MakeLParam(p.X, p.Y));
+            PostMessage(handle, WM_LBUTTONUP, 1, MakeLParam(p.X, p.Y));
+        }
+#endregion POSTMESSAGE
         
         public bool Error(string msg)
         {
