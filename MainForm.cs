@@ -71,9 +71,11 @@ namespace clicker_hero
             
             
             if (ghkAutoCLicker.Register()) {
+#if RELEASE
                 MessageBox.Show("Enable/Disable AutoClicker with" + Environment.NewLine +
                                 "ALT + SHIFT + A" + Environment.NewLine,
                                 "AutoClicker Information", MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+#endif
             } else {
                 MessageBox.Show("Unable to register global hotkey for AutoClicker!" + Environment.NewLine + 
                                 "Autoclicker is clicking for " + iAutoTimerSeconds + " seconds and will then wait " + iAutoTimerDelaySeconds + " seconds before clicking again." + Environment.NewLine,
@@ -116,7 +118,7 @@ namespace clicker_hero
             textBox2.Text = iTimerMinutes.ToString();
             textBox3.Text = iTimerSeconds.ToString();
             
-            clicks = new ClickLocations();
+            CheckBoxBackgroundCheckedChanged(); // set click locations according to background state
             DoIt();
         }
         
@@ -426,22 +428,218 @@ namespace clicker_hero
         public void go(Point pStart, Point pLocation, IntPtr handle)
         {
             LOG.Add("GO: Start", 3);
-            Point p = new Point(Convert.ToInt32(pStart.X + pLocation.X), Convert.ToInt32(pStart.Y + pLocation.Y));
             
             if (handle.ToInt32() != -1) {
-                LOG.Add("GO: Bringing app to front", 4);
                 Error("");
-                SetForegroundWindow(handle.ToInt32());
-                LOG.Add("GO: Moving Cursor to: " + p.ToString(), 9);
-                Cursor.Position = p;
-                mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, new IntPtr());
-                mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, new IntPtr());
+                if (checkBoxBackground.Checked) {
+                    LOG.Add("GO: Sending to background app", 4);
+                    ControlClickWindow("Clicker Heroes", "left", pLocation.X, pLocation.Y, false);
+                } else {
+                    Point p = new Point(Convert.ToInt32(pStart.X + pLocation.X), Convert.ToInt32(pStart.Y + pLocation.Y));
+                    LOG.Add("GO: Bringing app to front", 4);
+                    SetForegroundWindow(handle.ToInt32());
+                    LOG.Add("GO: Moving Cursor to: " + p.ToString(), 9);
+                    Cursor.Position = p;
+                    mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, new IntPtr());
+                    mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, new IntPtr());
+                }
             } else {
                 LOG.Add("GO: No Window handle found", 4);
                 Error("Clicker Heroes not found or not running");
             }
         }
 #endregion MOUSE_EVENT
+#region SEND_INPUT
+        // taken from http://www.blizzhackers.cc/viewtopic.php?t=396398
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+        
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = false)]
+        static extern IntPtr SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+        
+        ///summary>
+        /// Virtual Messages
+        /// </summary>
+        public enum WMessages : int
+        {
+            WM_LBUTTONDOWN = 0x201, //Left mousebutton down
+            WM_LBUTTONUP = 0x202,  //Left mousebutton up
+            WM_LBUTTONDBLCLK = 0x203, //Left mousebutton doubleclick
+            WM_RBUTTONDOWN = 0x204, //Right mousebutton down
+            WM_RBUTTONUP = 0x205,   //Right mousebutton up
+            WM_RBUTTONDBLCLK = 0x206, //Right mousebutton doubleclick
+            WM_KEYDOWN = 0x100,  //Key down
+            WM_KEYUP = 0x101,   //Key up
+        }
+    
+        /// <summary>
+        /// Virtual Keys
+        /// </summary>
+        public enum VKeys : int
+        {
+            VK_LBUTTON = 0x01,   //Left mouse button
+            VK_RBUTTON = 0x02,   //Right mouse button
+            VK_CANCEL = 0x03,   //Control-break processing
+            VK_MBUTTON = 0x04,   //Middle mouse button (three-button mouse)
+            VK_BACK = 0x08,   //BACKSPACE key
+            VK_TAB = 0x09,   //TAB key
+            VK_CLEAR = 0x0C,   //CLEAR key
+            VK_RETURN = 0x0D,   //ENTER key
+            VK_SHIFT = 0x10,   //SHIFT key
+            VK_CONTROL = 0x11,   //CTRL key
+            VK_MENU = 0x12,   //ALT key
+            VK_PAUSE = 0x13,   //PAUSE key
+            VK_CAPITAL = 0x14,   //CAPS LOCK key
+            VK_ESCAPE = 0x1B,   //ESC key
+            VK_SPACE = 0x20,   //SPACEBAR
+            VK_PRIOR = 0x21,   //PAGE UP key
+            VK_NEXT = 0x22,   //PAGE DOWN key
+            VK_END = 0x23,   //END key
+            VK_HOME = 0x24,   //HOME key
+            VK_LEFT = 0x25,   //LEFT ARROW key
+            VK_UP = 0x26,   //UP ARROW key
+            VK_RIGHT = 0x27,   //RIGHT ARROW key
+            VK_DOWN = 0x28,   //DOWN ARROW key
+            VK_SELECT = 0x29,   //SELECT key
+            VK_PRINT = 0x2A,   //PRINT key
+            VK_EXECUTE = 0x2B,   //EXECUTE key
+            VK_SNAPSHOT = 0x2C,   //PRINT SCREEN key
+            VK_INSERT = 0x2D,   //INS key
+            VK_DELETE = 0x2E,   //DEL key
+            VK_HELP = 0x2F,   //HELP key
+            VK_0 = 0x30,   //0 key
+            VK_1 = 0x31,   //1 key
+            VK_2 = 0x32,   //2 key
+            VK_3 = 0x33,   //3 key
+            VK_4 = 0x34,   //4 key
+            VK_5 = 0x35,   //5 key
+            VK_6 = 0x36,    //6 key
+            VK_7 = 0x37,    //7 key
+            VK_8 = 0x38,   //8 key
+            VK_9 = 0x39,    //9 key
+            VK_A = 0x41,   //A key
+            VK_B = 0x42,   //B key
+            VK_C = 0x43,   //C key
+            VK_D = 0x44,   //D key
+            VK_E = 0x45,   //E key
+            VK_F = 0x46,   //F key
+            VK_G = 0x47,   //G key
+            VK_H = 0x48,   //H key
+            VK_I = 0x49,    //I key
+            VK_J = 0x4A,   //J key
+            VK_K = 0x4B,   //K key
+            VK_L = 0x4C,   //L key
+            VK_M = 0x4D,   //M key
+            VK_N = 0x4E,    //N key
+            VK_O = 0x4F,   //O key
+            VK_P = 0x50,    //P key
+            VK_Q = 0x51,   //Q key
+            VK_R = 0x52,   //R key
+            VK_S = 0x53,   //S key
+            VK_T = 0x54,   //T key
+            VK_U = 0x55,   //U key
+            VK_V = 0x56,   //V key
+            VK_W = 0x57,   //W key
+            VK_X = 0x58,   //X key
+            VK_Y = 0x59,   //Y key
+            VK_Z = 0x5A,    //Z key
+            VK_NUMPAD0 = 0x60,   //Numeric keypad 0 key
+            VK_NUMPAD1 = 0x61,   //Numeric keypad 1 key
+            VK_NUMPAD2 = 0x62,   //Numeric keypad 2 key
+            VK_NUMPAD3 = 0x63,   //Numeric keypad 3 key
+            VK_NUMPAD4 = 0x64,   //Numeric keypad 4 key
+            VK_NUMPAD5 = 0x65,   //Numeric keypad 5 key
+            VK_NUMPAD6 = 0x66,   //Numeric keypad 6 key
+            VK_NUMPAD7 = 0x67,   //Numeric keypad 7 key
+            VK_NUMPAD8 = 0x68,   //Numeric keypad 8 key
+            VK_NUMPAD9 = 0x69,   //Numeric keypad 9 key
+            VK_SEPARATOR = 0x6C,   //Separator key
+            VK_SUBTRACT = 0x6D,   //Subtract key
+            VK_DECIMAL = 0x6E,   //Decimal key
+            VK_DIVIDE = 0x6F,   //Divide key
+            VK_F1 = 0x70,   //F1 key
+            VK_F2 = 0x71,   //F2 key
+            VK_F3 = 0x72,   //F3 key
+            VK_F4 = 0x73,   //F4 key
+            VK_F5 = 0x74,   //F5 key
+            VK_F6 = 0x75,   //F6 key
+            VK_F7 = 0x76,   //F7 key
+            VK_F8 = 0x77,   //F8 key
+            VK_F9 = 0x78,   //F9 key
+            VK_F10 = 0x79,   //F10 key
+            VK_F11 = 0x7A,   //F11 key
+            VK_F12 = 0x7B,   //F12 key
+            VK_SCROLL = 0x91,   //SCROLL LOCK key
+            VK_LSHIFT = 0xA0,   //Left SHIFT key
+            VK_RSHIFT = 0xA1,   //Right SHIFT key
+            VK_LCONTROL = 0xA2,   //Left CONTROL key
+            VK_RCONTROL = 0xA3,    //Right CONTROL key
+            VK_LMENU = 0xA4,      //Left MENU key
+            VK_RMENU = 0xA5,   //Right MENU key
+            VK_PLAY = 0xFA,   //Play key
+            VK_ZOOM   = 0xFB, //Zoom key
+        }
+        
+        /// <summary>
+        /// Sends a message to the specified handle
+        /// </summary>
+        public void _SendMessage(IntPtr handle, int Msg, int wParam, int lParam)
+        {
+            SendMessage(handle, Msg, wParam, lParam);
+        }
+       
+        /// <summary>
+        /// MakeLParam Macro
+        /// </summary>
+        public int MakeLParam(int LoWord, int HiWord)
+        {
+            return ((HiWord << 16) | (LoWord & 0xffff));
+        }
+
+        /// <summary>
+        /// returns handle of specified window name
+        /// </summary>
+        public IntPtr FindWindow(string wndName)
+        {
+            return FindWindow(null, wndName);
+        }
+
+        public void ControlClickWindow(string wndName, string button, int x, int y, bool doubleklick)
+        {
+            IntPtr hWnd = FindWindow(null, wndName);
+            int LParam = MakeLParam(x, y);
+
+            int btnDown = 0;
+            int btnUp = 0;
+
+            if (button == "left")
+            {
+                btnDown = (int)WMessages.WM_LBUTTONDOWN;
+                btnUp = (int)WMessages.WM_LBUTTONUP;
+            }
+
+            if (button == "right")
+            {
+                btnDown = (int)WMessages.WM_RBUTTONDOWN;
+                btnUp = (int)WMessages.WM_RBUTTONUP;
+            }
+
+
+            if (doubleklick == true)
+            {
+                _SendMessage(hWnd, btnDown, 0, LParam);
+                _SendMessage(hWnd, btnUp, 0, LParam);
+                _SendMessage(hWnd, btnDown, 0, LParam);
+                _SendMessage(hWnd, btnUp, 0, LParam);
+            }
+
+            if (doubleklick == false)
+
+            { _SendMessage(hWnd, btnDown, 0, LParam);
+              _SendMessage(hWnd, btnUp, 0, LParam); }
+               
+        }
+#endregion SEND_INPUT
         
         public bool Error(string msg)
         {
@@ -463,6 +661,20 @@ namespace clicker_hero
                 MessageBox.Show("Error while unregistering hotkey.",
                                 "AutoClicker Information", MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
         }
+        
+        void CheckBoxBackgroundCheckedChanged()
+        {
+            CheckBoxBackgroundCheckedChanged(new object(), new EventArgs());
+        }
+        
+        void CheckBoxBackgroundCheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBoxBackground.Checked) {
+                clicks = new ClickLocations(true);
+            } else {
+                clicks = new ClickLocations(false);
+            }
+        }
     }
     
     public static class LOG
@@ -480,20 +692,52 @@ namespace clicker_hero
     
     public class ClickLocations
     {
-        public Point clicker1 = new Point(530, 485);
-        public Point clicker2 = new Point(750, 435);
-        public Point clicker3 = new Point(760, 380);
-        public Point clicker4 = new Point(875, 515);
-        public Point clicker5 = new Point(1008, 452);
-        public Point clicker6 = new Point(1055, 440);
-        public Point level1 = new Point(100, 260);
-        public Point level2 = new Point(100, 370);
-        public Point level3 = new Point(100, 475);
-        public Point level4 = new Point(100, 583);
-        public Point clickerAuto = new Point(850, 300);
+        // active window clicks
+        public Point clicker1 { get; set; }
+        public Point clicker2 { get; set; }
+        public Point clicker3 { get; set; }
+        public Point clicker4 { get; set; }
+        public Point clicker5 { get; set; }
+        public Point clicker6 { get; set; }
+        public Point level1 { get; set; }
+        public Point level2 { get; set; }
+        public Point level3 { get; set; }
+        public Point level4 { get; set; }
+        public Point clickerAuto { get; set; }
+        
+        public ClickLocations(bool background)
+        {
+            if (background) {
+                // background clicks
+                clicker1 = new Point(525, 460);
+                clicker2 = new Point(745, 410);
+                clicker3 = new Point(755, 355);
+                clicker4 = new Point(870, 490);
+                clicker5 = new Point(1003, 427);
+                clicker6 = new Point(1050, 415);
+                level1 = new Point(95, 235);
+                level2 = new Point(95, 345);
+                level3 = new Point(95, 450);
+                level4 = new Point(95, 558);
+                clickerAuto = new Point(845, 275);
+            } else {
+                // active window clicks
+                clicker1 = new Point(530, 485);
+                clicker2 = new Point(750, 435);
+                clicker3 = new Point(760, 380);
+                clicker4 = new Point(875, 515);
+                clicker5 = new Point(1008, 452);
+                clicker6 = new Point(1055, 440);
+                level1 = new Point(100, 260);
+                level2 = new Point(100, 370);
+                level3 = new Point(100, 475);
+                level4 = new Point(100, 583);
+                clickerAuto = new Point(850, 300);
+            }
+        }
     }
     
-        
+    
     /// <summary>
     /// Holds static global variables
     /// </summary>

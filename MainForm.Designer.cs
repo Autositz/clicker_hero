@@ -37,6 +37,7 @@ namespace clicker_hero
         private System.Windows.Forms.CheckBox checkBoxAutoClicker;
         private System.Windows.Forms.Label labelAutoClicker;
         private System.Windows.Forms.Label labelErrors;
+        private System.Windows.Forms.CheckBox checkBoxBackground;
         
         /// <summary>
         /// Disposes resources used by the form.
@@ -66,6 +67,7 @@ namespace clicker_hero
             this.checkBoxHeroLevel2 = new System.Windows.Forms.CheckBox();
             this.checkBoxHeroLevel1 = new System.Windows.Forms.CheckBox();
             this.groupBoxTimer = new System.Windows.Forms.GroupBox();
+            this.checkBoxBackground = new System.Windows.Forms.CheckBox();
             this.labelAutoClicker = new System.Windows.Forms.Label();
             this.checkBoxTimerActive = new System.Windows.Forms.CheckBox();
             this.buttonSetTimer = new System.Windows.Forms.Button();
@@ -149,6 +151,7 @@ namespace clicker_hero
             // groupBoxTimer
             // 
             this.groupBoxTimer.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.groupBoxTimer.Controls.Add(this.checkBoxBackground);
             this.groupBoxTimer.Controls.Add(this.labelAutoClicker);
             this.groupBoxTimer.Controls.Add(this.checkBoxTimerActive);
             this.groupBoxTimer.Controls.Add(this.buttonSetTimer);
@@ -165,6 +168,18 @@ namespace clicker_hero
             this.groupBoxTimer.TabIndex = 0;
             this.groupBoxTimer.TabStop = false;
             this.groupBoxTimer.Text = "Timers";
+            // 
+            // checkBoxBackground
+            // 
+            this.checkBoxBackground.Checked = true;
+            this.checkBoxBackground.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxBackground.Location = new System.Drawing.Point(195, 43);
+            this.checkBoxBackground.Name = "checkBoxBackground";
+            this.checkBoxBackground.Size = new System.Drawing.Size(134, 24);
+            this.checkBoxBackground.TabIndex = 10;
+            this.checkBoxBackground.Text = "Background clicking";
+            this.checkBoxBackground.UseVisualStyleBackColor = true;
+            this.checkBoxBackground.CheckedChanged += new System.EventHandler(this.CheckBoxBackgroundCheckedChanged);
             // 
             // labelAutoClicker
             // 
