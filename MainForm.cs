@@ -64,7 +64,11 @@ namespace clicker_hero
             //
             InitializeComponent();
             this.CreateControl();
+#if DEBUG
+            this.Text += " DEBUG " + this.ProductVersion;
+#else
             this.Text += " " + this.ProductVersion;
+#endif
             
             // register global hotkeys
             ghkAutoCLicker = new GlobalHotkey(Constants.ALT + Constants.SHIFT, Keys.A, this);
@@ -433,8 +437,8 @@ namespace clicker_hero
                 Error("");
                 if (checkBoxBackground.Checked) {
                     LOG.Add("GO: Sending to background app", 4);
-//                    ControlClickWindow("Clicker Heroes", "left", pLocation.X, pLocation.Y, false);
-                    _PostMessage(handle, pLocation);
+//                    ControlClickWindow("Clicker Heroes", "left", pLocation.X, pLocation.Y, false); // SEND_INPUT
+                    _PostMessage(handle, pLocation); // POSTMESSAGE
                 } else {
                     Point p = new Point(Convert.ToInt32(pStart.X + pLocation.X), Convert.ToInt32(pStart.Y + pLocation.Y));
                     LOG.Add("GO: Bringing app to front", 4);
