@@ -33,7 +33,7 @@ namespace clicker_hero
         DateTime starttClickTimer = new DateTime();
         TimeSpan elapsedtClickTimer = new TimeSpan();
         private ClickLocations clicks;
-        Stopwatch swTest = new Stopwatch();
+//        Stopwatch swTest = new Stopwatch();
         private System.Timers.Timer tAutoClickTimer;
         private System.Timers.Timer tForcedDelayAutoClickTimer;
         private System.Timers.Timer tForcedDelayWaitAutoClickTimer;
@@ -42,6 +42,8 @@ namespace clicker_hero
         TimeSpan elapsedtAutoTimer = new TimeSpan();
         const int iMaxClicksPerSecond = 40; // 40 clicks per second max
         private GlobalHotkey ghkAutoCLicker;
+        private bool bHotkeyRegistered = false;
+        private bool bWaitDelay = true;
         
 #if DEBUG
         int iTimerHours = 0;
@@ -79,6 +81,7 @@ namespace clicker_hero
                 MessageBox.Show("Enable/Disable AutoClicker with" + Environment.NewLine +
                                 "ALT + SHIFT + A" + Environment.NewLine,
                                 "AutoClicker Information", MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+                bHotkeyRegistered = true;
 #endif
             } else {
                 MessageBox.Show("Unable to register global hotkey for AutoClicker!" + Environment.NewLine + 
@@ -147,8 +150,8 @@ namespace clicker_hero
         
         public void DelayAutoClick(object sender, EventArgs e)
         {
-            if (bForceWait) {
-                LOG.Add("DELAYAUTOCLICK: WAITING", 4);
+            if (bForceWait && bWaitDelay) {
+                LOG.Add("DELAYAUTOCLICK: WAITING", 3);
                 tAutoClickTimer.Stop();
 //                LOG.Add("DELAYAUTOCLICK: 1");
 //                labelAutoClicker.Text = "Waiting..."; // execution stops here but no exception raised...
@@ -156,15 +159,16 @@ namespace clicker_hero
                 tForcedDelayWaitAutoClickTimer.Start();
                 starttAutoTimer = DateTime.Now;
                 LOG.Add("DELAYAUTOCLICK: WaitTimer started", 4);
+                bForceWait = false;
             } else {
-                LOG.Add("DELAYAUTOCLICK: RUNNING", 4);
+                LOG.Add("DELAYAUTOCLICK: RUNNING", 3);
                 tForcedDelayAutoClickTimer.Start();
 //                labelAutoClicker.Text = "Running...";
                 tAutoClickTimer.Start();
                 starttAutoTimer = DateTime.Now;
                 LOG.Add("DELAYAUTOCLICK: AutoClickTimer started", 4);
+                bForceWait = true;
             }
-            bForceWait = !bForceWait;
         }
         
         private async void DoIt()
@@ -431,7 +435,7 @@ namespace clicker_hero
         
         public void go(Point pStart, Point pLocation, IntPtr handle)
         {
-            LOG.Add("GO: Start", 3);
+            LOG.Add("GO: Start", 4);
             
             if (handle.ToInt32() != -1) {
                 Error("");
@@ -663,7 +667,7 @@ namespace clicker_hero
         {
             if (this.InvokeRequired)
             {
-                LOG.Add("ERROR: NEEDS INVOKE", 3);
+                LOG.Add("ERROR: NEEDS INVOKE", 6);
                 return (bool)this.Invoke ((Func<string,bool>)Error, msg);
             }
             if (msg != "") {
@@ -691,6 +695,37 @@ namespace clicker_hero
                 clicks = new ClickLocations(true);
             } else {
                 clicks = new ClickLocations(false);
+            }
+        }
+        
+        void CheckBoxWaitDelayCheckedChanged(object sender, EventArgs e)
+        {
+            LOG.Add("CHECKBOXWAITDELAYCHECKEDCHANGED: START", 3);
+            if (checkBoxWaitDelay.Checked && !checkBoxBackground.Checked) {
+                if (bHotkeyRegistered) {
+                    DialogResult userchoice = MessageBox.Show("Enable/Disable AutoClicker with" + Environment.NewLine +
+                                    "ALT + SHIFT + A" + Environment.NewLine,
+                                    "AutoClicker Information", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+                    if (userchoice == DialogResult.OK) {
+                        LOG.Add("CHECKBOXWAITDELAYCHECKEDCHANGED: User OK", 6);
+                        bWaitDelay = false;
+                    } else {
+                        LOG.Add("CHECKBOXWAITDELAYCHECKEDCHANGED: User Cancel", 6);
+                        bWaitDelay = true;
+                        checkBoxWaitDelay.Checked = false;
+                    }
+                } else {
+                    LOG.Add("CHECKBOXWAITDELAYCHECKEDCHANGED: NO HOTKEY", 6);
+                    bWaitDelay = true;
+                    checkBoxWaitDelay.Checked = false;
+                    MessageBox.Show("AutoClickDelay should not be deactivated while no hotkey is set!" + Environment.NewLine +
+                                    "Please restart the program to set the hotkey.",
+                                    "AutoClicker Information", MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1);
+                }
+            } else {
+                // TODO: something is fishy here, i am missing a check when to activate and deactivate the delay in combination with background activity and hotkey availability
+                LOG.Add("CHECKBOXWAITDELAYCHECKEDCHANGED: Default wait", 6);
+                bWaitDelay = true;
             }
         }
     }
@@ -737,7 +772,7 @@ namespace clicker_hero
                 level2 = new Point(95, 345);
                 level3 = new Point(95, 450);
                 level4 = new Point(95, 558);
-                clickerAuto = new Point(845, 275);
+                clickerAuto = new Point(970, 117);
             } else {
                 // active window clicks
                 clicker1 = new Point(530, 485);
@@ -750,7 +785,7 @@ namespace clicker_hero
                 level2 = new Point(100, 370);
                 level3 = new Point(100, 475);
                 level4 = new Point(100, 583);
-                clickerAuto = new Point(850, 300);
+                clickerAuto = new Point(975, 145);
             }
         }
     }
@@ -762,6 +797,6 @@ namespace clicker_hero
     public static class GlobalVar
     {
         public const bool DEBUG = true; // enable or disable debug messages
-        public const int DEBUGLEVEL = 4; // enable or disable debug messages
+        public const int DEBUGLEVEL = 3; // enable or disable debug messages
     }
 }
