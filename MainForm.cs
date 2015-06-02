@@ -21,7 +21,7 @@ using Hotkeys;
 namespace clicker_hero
 {
     /// <summary>
-    /// Description of MainForm.
+    /// Main user interface
     /// </summary>
     public partial class MainForm : Form
     {
@@ -29,33 +29,108 @@ namespace clicker_hero
         /// Background timer to update tooltip info
         /// </summary>
         private System.Timers.Timer tClickTimer;
+        /// <summary>
+        /// Background timer to display times in GUI
+        /// </summary>
         private System.Windows.Forms.Timer tTickTimer;
+        /// <summary>
+        /// Last start of the tClickTimer
+        /// </summary>
         DateTime starttClickTimer = new DateTime();
+        /// <summary>
+        /// Time difference between Now and starttClickTimer
+        /// </summary>
         TimeSpan elapsedtClickTimer = new TimeSpan();
+        /// <summary>
+        /// Coordinates to be clicked
+        /// </summary>
         private ClickLocations clicks;
+        /// <summary>
+        /// Monitor start time of application
+        /// </summary>
 //        Stopwatch swTest = new Stopwatch();
+        /// <summary>
+        /// Background timer to perform autoclicking
+        /// </summary>
         private System.Timers.Timer tAutoClickTimer;
+        /// <summary>
+        /// Timer for duration of autoclicker
+        /// </summary>
         private System.Timers.Timer tForcedDelayAutoClickTimer;
+        /// <summary>
+        /// Timer for wait delay for autoclicker
+        /// </summary>
         private System.Timers.Timer tForcedDelayWaitAutoClickTimer;
-        private bool bForceWait = true; // do we need to force a wait on next check
+        /// <summary>
+        /// do we need to force a wait on next check
+        /// </summary>
+        private bool bForceWait = true;
+        /// <summary>
+        /// Last start of the tAutoClickTimer
+        /// </summary>
         DateTime starttAutoTimer = new DateTime();
+        /// <summary>
+        /// Time difference between Now and starttAutoTimer
+        /// </summary>
         TimeSpan elapsedtAutoTimer = new TimeSpan();
+        /// <summary>
+        /// Maximum number of clicks per seconds for tAutoClickTimer
+        /// </summary>
         const int iMaxClicksPerSecond = 40; // 40 clicks per second max
+        /// <summary>
+        /// Global hotkey setting
+        /// </summary>
         private GlobalHotkey ghkAutoCLicker;
+        /// <summary>
+        /// True when registering hotkey was successfull
+        /// </summary>
         private bool bHotkeyRegistered = false;
+        /// <summary>
+        /// True when we want to have a wait delay in between autoclicker
+        /// </summary>
         private bool bWaitDelay = true;
         
 #if DEBUG
+        /// <summary>
+        /// Main timer hours
+        /// </summary>
         int iTimerHours = 0;
+        /// <summary>
+        /// Main timer minutes
+        /// </summary>
         int iTimerMinutes = 0;
+        /// <summary>
+        /// Main timer seconds
+        /// </summary>
         int iTimerSeconds = 30;
+        /// <summary>
+        /// Timer AutoClick seconds
+        /// </summary>
         const int iAutoTimerSeconds = 7;
+        /// <summary>
+        /// Timer AutoclickDelay seconds
+        /// </summary>
         const int iAutoTimerDelaySeconds = 5;
 #else
+        /// <summary>
+        /// Main timer hours
+        /// </summary>
         int iTimerHours = 0;
+        /// <summary>
+        /// Main timer minutes
+        /// </summary>
         int iTimerMinutes = 8; // do clickables every 8 minutes to not interrupt idle farming too much
+        /// <summary>
+        /// Main timer seconds
+        /// </summary>
         int iTimerSeconds = 0;
+        /// <summary>
+        /// Timer AutoClick seconds
+        /// </summary>
         const int iAutoTimerSeconds = 45; // run for 45 seconds then wait for user interactions
+        /// <summary>
+        /// Timer AutoclickDelay seconds
+        /// </summary>
         const int iAutoTimerDelaySeconds = 6; // wait 6 seconds to allow user interactions
 #endif
         
@@ -129,6 +204,10 @@ namespace clicker_hero
             DoIt();
         }
         
+        /// <summary>
+        /// Catch windows event messages
+        /// </summary>
+        /// <param name="m">Windows event message</param>
         protected override void WndProc(ref Message m)
         {
             if (m.Msg == Constants.WM_HOTKEY_MSG_ID)
@@ -143,11 +222,19 @@ namespace clicker_hero
             base.WndProc(ref m);
         }
         
+        /// <summary>
+        /// Switch the AutoClicker checkbox
+        /// </summary>
         public void FlipAutoClicker()
         {
             checkBoxAutoClicker.Checked = !checkBoxAutoClicker.Checked;
         }
         
+        /// <summary>
+        /// Timer event to switch AutoClicker on/off
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public void DelayAutoClick(object sender, EventArgs e)
         {
             if (bForceWait && bWaitDelay) {
@@ -171,6 +258,9 @@ namespace clicker_hero
             }
         }
         
+        /// <summary>
+        /// Run all the clicking
+        /// </summary>
         private async void DoIt()
         {
             LOG.Add("DOIT: Start", 2);
@@ -229,11 +319,21 @@ namespace clicker_hero
             }
         }
         
+        /// <summary>
+        /// Waiting time for operations
+        /// </summary>
+        /// <param name="waittime">Time in ms</param>
+        /// <returns></returns>
         async Task Wait(int waittime)
         {
             await Task.Delay(waittime);
         }
-
+        
+        /// <summary>
+        /// Timer event to perform AutoClicking
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void DoAutoClick(object sender, EventArgs e)
         {
             IntPtr handle = new IntPtr(-1);
@@ -246,12 +346,22 @@ namespace clicker_hero
             }
         }
         
+        /// <summary>
+        /// Timer event from default timer
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public void CheckNextTime(object sender, EventArgs e)
         {
             LOG.Add("CHECKNEXTTIME: Call from timer", 3);
             DoIt();
         }
         
+        /// <summary>
+        /// Timer event from short tick timer (display ms times)
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void tTickTimer_Tick(object sender, EventArgs e)
         {
             string preText = "";
@@ -273,12 +383,20 @@ namespace clicker_hero
             }
         }
         
+        /// <summary>
+        /// Set Timer button clicking
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void TimerChanged(object sender, EventArgs e)
-        {
+        {// FIXME: Timer sometimes overruns the set limit
             LOG.Add("TIMERCHANGED: Timer has changed", 5);
             SetTimer();
         }
         
+        /// <summary>
+        /// Set the default timer to current textbox entries
+        /// </summary>
         void SetTimer()
         {
             LOG.Add("SETTIMER: Parsing Textbox to variables", 5);
@@ -292,10 +410,21 @@ namespace clicker_hero
             if (int.TryParse(textBox3.Text, out i)) {
                 iTimerSeconds = i;
             }
-            SetNewTimer();
+            SetNewTimer(true);
         }
-
+        
+        /// <summary>
+        /// Set the default timer without starting timer
+        /// </summary>
         void SetNewTimer()
+        {
+            SetNewTimer(false);
+        }
+        
+        /// <summary>
+        /// Set the default timer and start it when requested
+        /// </summary>
+        void SetNewTimer(bool bStart)
         {
             int iTime = 0; // time to count in seconds
             if (iTimerHours > 0)
@@ -311,23 +440,42 @@ namespace clicker_hero
                 iTime = 10; // override small values to remain responsive
             }
             tClickTimer.Interval = 1000 * iTime;
+            
+            // timer needs to get started when requested
+            if (bStart) {
+                tClickTimer.Start();
+            }
             starttClickTimer = DateTime.Now;
 //            labelTimerSet.Text = string.Format("{0}:{1}:{2}", iTimerHours.ToString("D2"), iTimerMinutes.ToString("D2"), iTimerSeconds.ToString("D2")) + Environment.NewLine + tClickTimer.Interval;
             labelTimerSet.Text = string.Format("{0}:{1}:{2}", iTimerHours.ToString("D2"), iTimerMinutes.ToString("D2"), iTimerSeconds.ToString("D2"));
         }
         
+        /// <summary>
+        /// Start and Stop the default timer manually
+        /// </summary>
         void StartStopTimer()
         {
             LOG.Add("STARTSTOPTIMER: Wrapper 1", 4);
             StartStopTimer(new object(), new EventArgs(), false);
         }
         
+        /// <summary>
+        /// Start and Stop the default timer called from Event handler
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void StartStopTimer(object sender, EventArgs e)
         {
             LOG.Add("STARTSTOPTIMER: Wrapper 2", 4);
             StartStopTimer(sender, e, true);
         }
         
+        /// <summary>
+        /// Start and Stop the default timer
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <param name="data">True when sent from an event handler</param>
         void StartStopTimer(object sender, EventArgs e, bool data)
         {
             if (checkBoxTimerActive.Checked) {
@@ -344,18 +492,32 @@ namespace clicker_hero
             }
         }
         
+        /// <summary>
+        /// Start and Stop the AutoClick timer manually
+        /// </summary>
         void StartStopAutoTimer()
         {
             LOG.Add("STARTSTOPAUTOTIMER: Wrapper 1", 4);
             StartStopAutoTimer(new object(), new EventArgs(), false);
         }
         
+        /// <summary>
+        /// Start and Stop the AutoClick timer called from event handler
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void StartStopAutoTimer(object sender, EventArgs e)
         {
             LOG.Add("STARTSTOPAUTOTIMER: Wrapper 2", 4);
             StartStopAutoTimer(sender, e, true);
         }
         
+        /// <summary>
+        /// Start and Stop the AutoClick timer
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <param name="data">True when sent from an event handler</param>
         void StartStopAutoTimer(object sender, EventArgs e, bool data)
         {
             if (checkBoxAutoClicker.Checked && checkBoxTimerActive.Checked) {
@@ -368,7 +530,10 @@ namespace clicker_hero
                 Error("AutoClicker stopped");
             }
         }
-
+        
+        /// <summary>
+        /// Start the AutoClickTimer
+        /// </summary>
         void StartAutoTimer()
         {
             tAutoClickTimer.Start();
@@ -378,7 +543,10 @@ namespace clicker_hero
             checkBoxAutoClicker.Checked = true;
             bForceWait = true; // enable to force a wait on next switch no matter the current state
         }
-
+        
+        /// <summary>
+        /// Stop the AutoClickTimer
+        /// </summary>
         void StopAutoTimer()
         {
             labelAutoClicker.Visible = false;
@@ -393,7 +561,12 @@ namespace clicker_hero
         /// stuff to send input to other window
         /// </summary>
         
-        
+        /// <summary>
+        /// Get window handle dimensions absolute to desktop location
+        /// </summary>
+        /// <param name="hWnd"></param>
+        /// <param name="lpRect"></param>
+        /// <returns></returns>
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool GetWindowRect(IntPtr hWnd, ref RECT lpRect);
@@ -406,6 +579,12 @@ namespace clicker_hero
             public int Bottom;
         }
         
+        /// <summary>
+        /// Get window handle top left coordinates on desktop
+        /// </summary>
+        /// <param name="processname">Window name to look for</param>
+        /// <param name="handle">REF window handle</param>
+        /// <param name="po">REF x,y coordinates</param>
         private void GetHandleCoords(string processname, ref IntPtr handle, ref Point po)
         {
 //            LOG.Add("GETHANDLE: Start");
@@ -418,21 +597,49 @@ namespace clicker_hero
             }
         }
         
+        /// <summary>
+        /// Mouse Events
+        /// </summary>
+        
         private const UInt32 MOUSEEVENTF_LEFTDOWN = 0x0002;
         private const UInt32 MOUSEEVENTF_LEFTUP = 0x0004;
         
+        /// <summary>
+        /// Set handle as active window
+        /// </summary>
+        /// <param name="hWnd"></param>
+        /// <returns></returns>
         [DllImport("User32.dll")]
         public static extern Int32 SetForegroundWindow(int hWnd);
         
+        /// <summary>
+        /// Send a mouse event at provided coordinates
+        /// </summary>
+        /// <param name="dwFlags">Mouse event</param>
+        /// <param name="dx">X</param>
+        /// <param name="dy">Y</param>
+        /// <param name="dwData"></param>
+        /// <param name="dwExtraInfo"></param>
         [DllImport("user32.dll")]
         private static extern void mouse_event(UInt32 dwFlags, UInt32 dx, UInt32 dy, UInt32 dwData, IntPtr dwExtraInfo);
         
+        /// <summary>
+        /// Get coordinates relative to window handle and execute mouse event at provided coordinates without handle information
+        /// </summary>
+        /// <param name="pStart">absolute window coordinates</param>
+        /// <param name="pLocation">relative click action coordinates in relation to window</param>
         public void go(Point pStart, Point pLocation)
         {
             LOG.Add("GO: Wrapper", 4);
             go(pStart, pLocation, new IntPtr(-1));
         }
         
+        /// <summary>
+        /// Get coordinates relative to window handle and execute mouse event at provided coordinates
+        /// </summary>
+        /// <param name="pStart">absolute window coordinates</param>
+        /// <param name="pLocation">relative click action coordinates in relation to window</param>
+        /// <param name="handle">window handle</param>
         public void go(Point pStart, Point pLocation, IntPtr handle)
         {
             LOG.Add("GO: Start", 4);
@@ -460,9 +667,24 @@ namespace clicker_hero
 #endregion MOUSE_EVENT
 #region SEND_INPUT
         // taken from http://www.blizzhackers.cc/viewtopic.php?t=396398
+        
+        /// <summary>
+        /// Findow window handle
+        /// </summary>
+        /// <param name="lpClassName"></param>
+        /// <param name="lpWindowName"></param>
+        /// <returns></returns>
         [DllImport("user32.dll", SetLastError = true)]
         static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
         
+        /// <summary>
+        /// Send event directly to a handle
+        /// </summary>
+        /// <param name="hWnd">handle</param>
+        /// <param name="Msg"></param>
+        /// <param name="wParam"></param>
+        /// <param name="lParam"></param>
+        /// <returns></returns>
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = false)]
         static extern IntPtr SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
         
@@ -480,7 +702,7 @@ namespace clicker_hero
             WM_KEYDOWN = 0x100,  //Key down
             WM_KEYUP = 0x101,   //Key up
         }
-    
+        
         /// <summary>
         /// Virtual Keys
         /// </summary>
@@ -604,7 +826,7 @@ namespace clicker_hero
         {
             return ((HiWord << 16) | (LoWord & 0xffff));
         }
-
+        
         /// <summary>
         /// returns handle of specified window name
         /// </summary>
@@ -612,50 +834,69 @@ namespace clicker_hero
         {
             return FindWindow(null, wndName);
         }
-
+        
+        /// <summary>
+        /// Send background action to inactive window
+        /// </summary>
+        /// <param name="wndName">window name</param>
+        /// <param name="button">mousebutton</param>
+        /// <param name="x">X inside window</param>
+        /// <param name="y">Y inside window</param>
+        /// <param name="doubleklick">perform a doubleclick</param>
         public void ControlClickWindow(string wndName, string button, int x, int y, bool doubleklick)
         {
             IntPtr hWnd = FindWindow(null, wndName);
             int LParam = MakeLParam(x, y);
-
+            
             int btnDown = 0;
             int btnUp = 0;
-
-            if (button == "left")
-            {
+            
+            if (button == "left") {
                 btnDown = (int)WMessages.WM_LBUTTONDOWN;
                 btnUp = (int)WMessages.WM_LBUTTONUP;
             }
-
-            if (button == "right")
-            {
+            
+            if (button == "right") {
                 btnDown = (int)WMessages.WM_RBUTTONDOWN;
                 btnUp = (int)WMessages.WM_RBUTTONUP;
             }
 
 
-            if (doubleklick == true)
-            {
+            if (doubleklick == true) {
                 _SendMessage(hWnd, btnDown, 0, LParam);
                 _SendMessage(hWnd, btnUp, 0, LParam);
                 _SendMessage(hWnd, btnDown, 0, LParam);
                 _SendMessage(hWnd, btnUp, 0, LParam);
             }
 
-            if (doubleklick == false)
-
-            { _SendMessage(hWnd, btnDown, 0, LParam);
-              _SendMessage(hWnd, btnUp, 0, LParam); }
+            if (doubleklick == false) {
+                _SendMessage(hWnd, btnDown, 0, LParam);
+                _SendMessage(hWnd, btnUp, 0, LParam);
+            }
                
         }
 #endregion SEND_INPUT
 #region POSTMESSAGE
+        
+        /// <summary>
+        /// Post a message to inactive window
+        /// </summary>
+        /// <param name="hWnd"></param>
+        /// <param name="Msg"></param>
+        /// <param name="wParam"></param>
+        /// <param name="lParam"></param>
+        /// <returns></returns>
         [DllImport("user32.dll")]
         static extern bool PostMessage(IntPtr hWnd, uint Msg, int wParam, int lParam);
         
         const int WM_LBUTTONDOWN = 0x0201;
         const int WM_LBUTTONUP = 0x0202;
         
+        /// <summary>
+        /// Post a message to inactive window
+        /// </summary>
+        /// <param name="handle"></param>
+        /// <param name="p"></param>
         public void _PostMessage(IntPtr handle, Point p)
         {
             PostMessage(handle, WM_LBUTTONDOWN, 1, MakeLParam(p.X, p.Y));
@@ -663,6 +904,11 @@ namespace clicker_hero
         }
 #endregion POSTMESSAGE
         
+        /// <summary>
+        /// Display a message in the Error box
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
         public bool Error(string msg)
         {
             if (this.InvokeRequired)
@@ -677,6 +923,12 @@ namespace clicker_hero
             
             return true;
         }
+        
+        /// <summary>
+        /// Unhook everything on Form closing
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void MainFormFormClosing(object sender, FormClosingEventArgs e)
         {
             if (!ghkAutoCLicker.Unregister())
@@ -684,11 +936,19 @@ namespace clicker_hero
                                 "AutoClicker Information", MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
         }
         
+        /// <summary>
+        /// Switch click locations to either include or exclude borders
+        /// </summary>
         void CheckBoxBackgroundCheckedChanged()
         {
             CheckBoxBackgroundCheckedChanged(new object(), new EventArgs());
         }
         
+        /// <summary>
+        /// Switch click locations to either include or exclude borders
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void CheckBoxBackgroundCheckedChanged(object sender, EventArgs e)
         {
             if (checkBoxBackground.Checked) {
@@ -698,8 +958,13 @@ namespace clicker_hero
             }
         }
         
+        /// <summary>
+        /// Switch wait delay between AutoClicker on or off
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void CheckBoxWaitDelayCheckedChanged(object sender, EventArgs e)
-        {
+        {//FIXME: wait delay still occuring after stop/start
             LOG.Add("CHECKBOXWAITDELAYCHECKEDCHANGED: START", 3);
             if (checkBoxWaitDelay.Checked && !checkBoxBackground.Checked) {
                 if (bHotkeyRegistered) {
@@ -730,19 +995,34 @@ namespace clicker_hero
         }
     }
     
+    /// <summary>
+    /// Debug Logging class
+    /// </summary>
     public static class LOG
     {
+        /// <summary>
+        /// Add a message to the log
+        /// </summary>
+        /// <param name="msg">Message to add</param>
         public static void Add(string msg)
         {
             Add(msg, 0);
         }
         
+        /// <summary>
+        /// Add a message to the log
+        /// </summary>
+        /// <param name="msg">Message to add</param>
+        /// <param name="level">Debug level</param>
         public static void Add(string msg, int level)
         {
             Debug.WriteLineIf((GlobalVar.DEBUG && level <= GlobalVar.DEBUGLEVEL), DateTime.Now.ToString("HH\\:mm\\:ss\\.fff") + " " + msg);
         }
     }
     
+    /// <summary>
+    /// Click locations
+    /// </summary>
     public class ClickLocations
     {
         // active window clicks
@@ -758,6 +1038,10 @@ namespace clicker_hero
         public Point level4 { get; set; }
         public Point clickerAuto { get; set; }
         
+        /// <summary>
+        /// Set click locations to include or exclude borders
+        /// </summary>
+        /// <param name="background">True if borders are excluded</param>
         public ClickLocations(bool background)
         {
             if (background) {
