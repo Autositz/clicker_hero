@@ -89,6 +89,14 @@ namespace clicker_hero
         /// True when we want to have a wait delay in between autoclicker
         /// </summary>
         private bool bWaitDelay = true;
+        /// <summary>
+        /// Background timer to click AutoProgress every now and then
+        /// </summary>
+        private System.Timers.Timer tAutoProgressTimer;
+        /// <summary>
+        /// Time in seconds when to click AutoProgress mode
+        /// </summary>
+        const int iAutoProgressTime = 30; // every 30s to not stay without progression for too long?
         
 #if DEBUG
         /// <summary>
@@ -181,6 +189,7 @@ namespace clicker_hero
             tAutoClickTimer.Elapsed += new ElapsedEventHandler(DoAutoClick);
             tAutoClickTimer.Interval = 1000 / iMaxClicksPerSecond;
             
+            // FIXME: is it correct to have DelayAutoClick everywhere?
             LOG.Add("MAIN: Set ForcedDelayAutoClickTimer", 5);
             tForcedDelayAutoClickTimer = new System.Timers.Timer();
             tForcedDelayAutoClickTimer.AutoReset = false;
@@ -191,6 +200,13 @@ namespace clicker_hero
             tForcedDelayWaitAutoClickTimer.AutoReset = false;
             tForcedDelayWaitAutoClickTimer.Elapsed += new ElapsedEventHandler(DelayAutoClick);
             tForcedDelayWaitAutoClickTimer.Interval = 1000 * iAutoTimerDelaySeconds;
+            
+            
+            LOG.Add("MAIN: Set AutoProgressTimer", 5);
+            tAutoProgressTimer = new System.Timers.Timer();
+            tAutoProgressTimer.AutoReset = true;
+            tAutoProgressTimer.Elapsed += new ElapsedEventHandler(DoAutoProgress);
+            tAutoProgressTimer.Interval = 1000 * iAutoProgressTime;
             
             StartStopTimer();
 
@@ -240,6 +256,7 @@ namespace clicker_hero
             if (bForceWait && bWaitDelay) {
                 LOG.Add("DELAYAUTOCLICK: WAITING", 3);
                 tAutoClickTimer.Stop();
+                // TODO: Fixed by setting labelAutoClicker to public?
 //                LOG.Add("DELAYAUTOCLICK: 1");
 //                labelAutoClicker.Text = "Waiting..."; // execution stops here but no exception raised...
 //                LOG.Add("DELAYAUTOCLICK: 2");
@@ -256,6 +273,27 @@ namespace clicker_hero
                 LOG.Add("DELAYAUTOCLICK: AutoClickTimer started", 4);
                 bForceWait = true;
             }
+        }
+        
+        /// <summary>
+        /// Timer event to switch AutoClicker on/off
+        /// </summary>
+        /// <param name="sender">Object</param>
+        /// <param name="e">ElapsedEventArgs</param>
+        public void DoAutoProgress(object sender, EventArgs e)
+        {
+            // FIXME: shorter timer but still higher than boss timer to not stay in waiting more for too long when we are currently progressing in levels? (slows down progression by not advancing...)
+            // HACK: Shouldn't this be ignored if progression gets clicked every minute because it will always progress every now and then and in case of emergency won't stay long without?
+            LOG.Add("DOAUTOPROGRESS: Let's click the progress button", 4);
+            IntPtr handle = new IntPtr(-1);
+            Point po = new Point();
+            GetHandleCoords("clicker heroes", ref handle, ref po);
+            
+            if (checkBoxAutoProgress.Checked) {
+                LOG.Add("DOAUTOPROGRESS: Clicking Auto progression", 4);
+                go(po, clicks.autoProgress, handle);
+            }
+            
         }
         
         /// <summary>
@@ -435,10 +473,12 @@ namespace clicker_hero
                 iTime += iTimerSeconds;
             
             LOG.Add("SETNEWTIMER: New timer set to " + iTime + " sec", 5);
-            if (iTime < 10) {
-                LOG.Add("SETNEWTIMER: OVERRIDE to 10 sec", 5);
-                iTime = 10; // override small values to remain responsive
-            }
+            // FIXME: only enforce for foreground click, ignore for background clicks
+            // FIXME: make a check when foreground/background gets changed and set timer accordingly
+//            if (iTime < 10) {
+//                LOG.Add("SETNEWTIMER: OVERRIDE to 10 sec", 5);
+//                iTime = 10; // override small values to remain responsive
+//            }
             tClickTimer.Interval = 1000 * iTime;
             
             // timer needs to get started when requested
@@ -484,8 +524,10 @@ namespace clicker_hero
                 starttClickTimer = DateTime.Now;
                 tTickTimer.Enabled = true;
                 StartStopAutoTimer(); // no direct start as the checkbox might not be active
+                StartStopAutoProgressTimer(); // no direct start as checkbox might not be active
             } else {
                 LOG.Add("STARTSTOPTIMER: STOPPING", 3);
+                tAutoProgressTimer.Stop();
                 StopAutoTimer();
                 tTickTimer.Enabled = false;
                 tClickTimer.Stop();
@@ -528,6 +570,43 @@ namespace clicker_hero
                 LOG.Add("STARTSTOPAUTOTIMER: STOPPING", 3);
                 StopAutoTimer();
                 Error("AutoClicker stopped");
+            }
+        }
+        
+        /// <summary>
+        /// Start and Stop the AutoClick timer manually
+        /// </summary>
+        void StartStopAutoProgressTimer()
+        {
+            LOG.Add("STARTSTOPAUTOPROGRESSTIMER: Wrapper 1", 4);
+            StartStopAutoTimer(new object(), new EventArgs(), false);
+        }
+        
+        /// <summary>
+        /// Start and Stop the AutoClick timer called from event handler
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void StartStopAutoProgressTimer(object sender, EventArgs e)
+        {
+            LOG.Add("STARTSTOPAUTOPROGRESSTIMER: Wrapper 2", 4);
+            StartStopAutoProgressTimer(sender, e, true);
+        }
+        
+        /// <summary>
+        /// Start and Stop the AutoClick timer
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <param name="data">True when sent from an event handler</param>
+        void StartStopAutoProgressTimer(object sender, EventArgs e, bool data)
+        {
+            if (checkBoxAutoProgress.Checked) {
+                LOG.Add("STARTSTOPAUTOPROGRESSTIMER: STARTING", 3);
+                tAutoProgressTimer.Start();
+            } else {
+                LOG.Add("STARTSTOPAUTOPROGRESSTIMER: STOPPING", 3);
+                tAutoProgressTimer.Stop();
             }
         }
         
@@ -891,6 +970,11 @@ namespace clicker_hero
         
         const int WM_LBUTTONDOWN = 0x0201;
         const int WM_LBUTTONUP = 0x0202;
+        const int WM_SYSKEYDOWN = 0x0104;
+        const int WM_SYSKEYUP = 0x0105;
+        const int WM_KEYDOWN = 0x0100;
+        const int WM_KEYUP = 0x0101;
+        const int VK_CONTROL = 0x11;
         
         /// <summary>
         /// Post a message to inactive window
@@ -899,8 +983,16 @@ namespace clicker_hero
         /// <param name="p"></param>
         public void _PostMessage(IntPtr handle, Point p)
         {
+            // TODO: put the check somewhere else?
+            if (checkBoxCTRLClick.Checked)
+                PostMessage(handle, WM_SYSKEYDOWN, VK_CONTROL, 0);
+            
             PostMessage(handle, WM_LBUTTONDOWN, 1, MakeLParam(p.X, p.Y));
             PostMessage(handle, WM_LBUTTONUP, 1, MakeLParam(p.X, p.Y));
+            
+            // TODO: put the check somewhere else?
+            if (checkBoxCTRLClick.Checked)
+                PostMessage(handle, WM_SYSKEYUP, VK_CONTROL, 0); 
         }
 #endregion POSTMESSAGE
         
@@ -1026,17 +1118,54 @@ namespace clicker_hero
     public class ClickLocations
     {
         // active window clicks
+        /// <summary>
+        /// Clickable location 1
+        /// </summary>
         public Point clicker1 { get; set; }
+        /// <summary>
+        /// Clickable location 2
+        /// </summary>
         public Point clicker2 { get; set; }
+        /// <summary>
+        /// Clickable location 3
+        /// </summary>
         public Point clicker3 { get; set; }
+        /// <summary>
+        /// Clickable location 4
+        /// </summary>
         public Point clicker4 { get; set; }
+        /// <summary>
+        /// Clickable location 5
+        /// </summary>
         public Point clicker5 { get; set; }
+        /// <summary>
+        /// Clickable location 6
+        /// </summary>
         public Point clicker6 { get; set; }
+        /// <summary>
+        /// Level up button location 1
+        /// </summary>
         public Point level1 { get; set; }
+        /// <summary>
+        /// Level up button location 2
+        /// </summary>
         public Point level2 { get; set; }
+        /// <summary>
+        /// Level up button location 3
+        /// </summary>
         public Point level3 { get; set; }
+        /// <summary>
+        /// Level up button location 4
+        /// </summary>
         public Point level4 { get; set; }
+        /// <summary>
+        /// AutoClick location including power up
+        /// </summary>
         public Point clickerAuto { get; set; }
+        /// <summary>
+        /// Autp progression button location
+        /// </summary>
+        public Point autoProgress { get; set; }
         
         /// <summary>
         /// Set click locations to include or exclude borders
@@ -1057,6 +1186,7 @@ namespace clicker_hero
                 level3 = new Point(95, 450);
                 level4 = new Point(95, 558);
                 clickerAuto = new Point(970, 117);
+                autoProgress = new Point(1120, 255);
             } else {
                 // active window clicks
                 clicker1 = new Point(530, 485);
@@ -1070,6 +1200,7 @@ namespace clicker_hero
                 level3 = new Point(100, 475);
                 level4 = new Point(100, 583);
                 clickerAuto = new Point(975, 145);
+                autoProgress = new Point(1125, 280);
             }
         }
     }
