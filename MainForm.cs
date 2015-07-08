@@ -579,7 +579,7 @@ namespace clicker_hero
         void StartStopAutoProgressTimer()
         {
             LOG.Add("STARTSTOPAUTOPROGRESSTIMER: Wrapper 1", 4);
-            StartStopAutoTimer(new object(), new EventArgs(), false);
+            StartStopAutoProgressTimer(new object(), new EventArgs(), false);
         }
         
         /// <summary>
