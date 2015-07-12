@@ -97,6 +97,14 @@ namespace clicker_hero
         /// Time in seconds when to click AutoProgress mode
         /// </summary>
         const int iAutoProgressTime = 30; // every 30s to not stay without progression for too long?
+        /// <summary>
+        /// Time in seconds to keep the combo clicker alive
+        /// </summary>
+        const int iPreserveCombo = 3;
+        /// <summary>
+        /// Background timer to keep the combo alive
+        /// </summary>
+        private System.Timers.Timer tPreserveComboTimer;
         
 #if DEBUG
         /// <summary>
@@ -189,6 +197,12 @@ namespace clicker_hero
             tAutoClickTimer.Elapsed += new ElapsedEventHandler(DoAutoClick);
             tAutoClickTimer.Interval = 1000 / iMaxClicksPerSecond;
             
+            LOG.Add("MAIN: Set PreserveComboTimer", 5);
+            tPreserveComboTimer = new System.Timers.Timer();
+            tPreserveComboTimer.AutoReset = true;
+            tPreserveComboTimer.Elapsed += new ElapsedEventHandler(DoPreserveCombo);
+            tPreserveComboTimer.Interval = 1000 * iPreserveCombo;
+            
             // FIXME: is it correct to have DelayAutoClick everywhere?
             LOG.Add("MAIN: Set ForcedDelayAutoClickTimer", 5);
             tForcedDelayAutoClickTimer = new System.Timers.Timer();
@@ -208,6 +222,7 @@ namespace clicker_hero
             tAutoProgressTimer.Elapsed += new ElapsedEventHandler(DoAutoProgress);
             tAutoProgressTimer.Interval = 1000 * iAutoProgressTime;
             
+            CheckBoxBackgroundCheckedChanged(); // set click locations according to background state, needs to be done before timers kick in!
             StartStopTimer();
 
             
@@ -216,12 +231,11 @@ namespace clicker_hero
             textBox2.Text = iTimerMinutes.ToString();
             textBox3.Text = iTimerSeconds.ToString();
             
-            CheckBoxBackgroundCheckedChanged(); // set click locations according to background state
             DoIt();
         }
         
         /// <summary>
-        /// Catch windows event messages
+        /// Catch windows event messages used for GlobalHotkey ghkAutoCLicker
         /// </summary>
         /// <param name="m">Windows event message</param>
         protected override void WndProc(ref Message m)
@@ -380,6 +394,23 @@ namespace clicker_hero
             
             if (checkBoxAutoClicker.Checked) {
                 LOG.Add("DOAUTOCLICK: Autoclicking", 6);
+                go(po, clicks.clickerAuto, handle);
+            }
+        }
+        
+        /// <summary>
+        /// Timer event to keep Combo alive (needs to be done in less than 10s)
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void DoPreserveCombo(object sender, EventArgs e)
+        {
+            IntPtr handle = new IntPtr(-1);
+            Point po = new Point();
+            GetHandleCoords("clicker heroes", ref handle, ref po);
+            
+            if (checkBoxPreserveCombo.Checked) {
+                LOG.Add("DOPRESERVECOMBO: PreserveCombo", 6);
                 go(po, clicks.clickerAuto, handle);
             }
         }
@@ -611,10 +642,11 @@ namespace clicker_hero
         }
         
         /// <summary>
-        /// Start the AutoClickTimer
+        /// Start the AutoClickTimer and disable PreserveComboTimer
         /// </summary>
         void StartAutoTimer()
         {
+            tPreserveComboTimer.Stop();
             tAutoClickTimer.Start();
             starttAutoTimer = DateTime.Now;
             tForcedDelayAutoClickTimer.Start();
@@ -624,7 +656,7 @@ namespace clicker_hero
         }
         
         /// <summary>
-        /// Stop the AutoClickTimer
+        /// Stop the AutoClickTimer and enable PreserveComboTimer
         /// </summary>
         void StopAutoTimer()
         {
@@ -633,6 +665,12 @@ namespace clicker_hero
             tForcedDelayWaitAutoClickTimer.Stop();
             tForcedDelayAutoClickTimer.Stop();
             tAutoClickTimer.Stop();
+            // needs to be stopped if TimerActive gets disabled and started when TimerActive is enabled
+            if (checkBoxTimerActive.Checked) {
+                tPreserveComboTimer.Start();
+            } else {
+                tPreserveComboTimer.Stop();
+            }
         }
         
 #region MOUSE_EVENT
